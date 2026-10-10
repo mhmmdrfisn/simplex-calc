@@ -47,10 +47,6 @@ Logika optimasi (penentuan entering/leaving variable) tetap dilakukan manual, se
 
 [MIT](LICENSE) - Copyright (c) 2026 Rafi Sanjaya
 
-Bebas dipakai, diubah, dan dimodifikasi untuk keperluan apa pun, selama
-notis hak cipta asli dipertahankan. Cocok untuk keperluan belajar dan
-portofolio.
-
 ---
 
 Dibuat sebagai bagian dari portofolio project.
