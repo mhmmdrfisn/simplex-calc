@@ -694,6 +694,10 @@
 
         // Rasio pivot
         const ratioBody = document.getElementById('ratioBody');
+
+        // Harus sama dengan nilai default ExprM.eval(), supaya tampilan rasio
+        // konsisten dengan pemilihan baris kunci.
+        const RATIO_M_VALUE = 10000;
         function updateRatioRowLabels() {
             ratioBody.querySelectorAll('tr').forEach((row, index) => {
                 row.querySelector('.row-label').textContent = `R${index + 1}`;
@@ -770,7 +774,12 @@
                             let mFrac = solExpr.m.div(valExpr.m);
                             ratioText = mFrac.format(isMatrixDecimalFormat);
                         } else {
-                            ratioText = isMatrixDecimalFormat ? ratioFloat.toFixed(3) : ratioFloat.toFixed(3);
+                            // Kolom mengandung M sehingga ExprM.div() melempar error.
+                            // Substitusi M dengan aritmetika pecahan eksak (nilai M yang sama
+                            // dipakai ExprM.eval) agar mode Pecahan tetap akurat, bukan desimal.
+                            let solExact = solExpr.c.add(solExpr.m.mul(new Fraction(RATIO_M_VALUE)));
+                            let valExact = valExpr.c.add(valExpr.m.mul(new Fraction(RATIO_M_VALUE)));
+                            ratioText = solExact.div(valExact).format(isMatrixDecimalFormat);
                         }
 
                         tRes.textContent = ratioText;
