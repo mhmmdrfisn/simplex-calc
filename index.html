@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SimplexCalc - Kalkulator Programa Linear</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { color-scheme: light; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #fafafa; 
+            color: #18181b; 
+            -webkit-font-smoothing: antialiased;
+        }
+        .font-math { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { height: 6px; width: 6px; }
+        ::-webkit-scrollbar-track { background: #f4f4f5; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
+
+        /* Input Styles Anti-Lag & Anti-Zoom iOS */
+        .cell-input {
+            width: 100%; min-width: 80px; padding: 0.5rem 0.75rem; 
+            border: 1px solid #d4d4d8; border-radius: 0.375rem;
+            text-align: center; background-color: #ffffff; color: #18181b;
+            font-size: 16px !important; 
+            touch-action: manipulation; 
+            appearance: none; 
+            transition: border-color 0.1s ease, box-shadow 0.1s ease;
+        }
+        .cell-input:focus {
+            outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .cell-input.error {
+            border-color: #ef4444 !important; background-color: #fef2f2 !important; color: #b91c1c !important; 
+        }
+
+        /* Tabs Animation */
+        .tab-content { display: none; animation: fadeIn 0.15s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Toast Animation */
+        .toast-enter { transform: translateY(-100%); opacity: 0; }
+        .toast-enter-active { transform: translateY(0); opacity: 1; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+        .toast-exit { transform: translateY(0); opacity: 1; }
+        .toast-exit-active { transform: translateY(-100%); opacity: 0; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        /* Calc Button Hover Effect */
+        .calc-btn { transition: background-color 0.1s ease, transform 0.1s; touch-action: manipulation; }
+        .calc-btn:active { background-color: #d4d4d8 !important; transform: scale(0.96); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-zinc-200 selection:text-zinc-900">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4"></div>
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-zinc-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="calculator" class="text-zinc-900 w-5 h-5"></i>
+                    <span class="font-bold tracking-tight text-zinc-900">SimplexCalc</span>
+                </div>
+                <!-- Nav Tabs -->
+                <div class="flex space-x-1 sm:space-x-2 items-center" id="navTabs">
+                    <button data-target="tab-kalkulator" class="nav-btn active px-3 py-2 rounded-md text-sm font-medium text-zinc-900 bg-zinc-100 transition-colors flex items-center gap-2">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i><span class="hidden sm:inline">Kalkulator</span>
+                    </button>
+                    <button data-target="tab-rasio" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors flex items-center gap-2">
+                        <i data-lucide="arrow-down-up" class="w-4 h-4"></i><span class="hidden sm:inline">Rasio</span>
+                    </button>
+                    <button data-target="tab-baris" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors flex items-center gap-2">
+                        <i data-lucide="table-properties" class="w-4 h-4"></i><span class="hidden sm:inline">Iterasi</span>
+                    </button>
+                    <button data-target="tab-about" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors flex items-center gap-2">
+                        <i data-lucide="circle-user-round" class="w-4 h-4"></i><span class="hidden sm:inline">Author</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- ==================== TAB 1: KALKULATOR ==================== -->
+        <section id="tab-kalkulator" class="tab-content active space-y-6">
+            <div class="border-b border-zinc-200 pb-4 mb-6">
+                <h1 class="text-2xl font-bold text-zinc-900">Kalkulator Fraksional</h1>
+                <p class="text-zinc-500 text-sm mt-1">Selesaikan hitungan matematika pecahan biasa maupun aljabar Big-M.</p>
+            </div>
+
+            <div class="w-full bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+                <div class="bg-zinc-50 p-6 sm:p-8 border-b border-zinc-200 flex flex-col justify-end min-h-[160px]">
+                    <div class="flex items-center justify-end gap-3 mb-6">
+                        <span id="lblCalcPecahan" class="text-[10px] font-bold text-zinc-800 uppercase tracking-widest transition-colors">Pecahan</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="calcFormatToggle" class="sr-only peer">
+                            <div class="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-zinc-900"></div>
+                        </label>
+                        <span id="lblCalcDesimal" class="text-[10px] font-medium text-zinc-400 uppercase tracking-widest transition-colors">Desimal</span>
+                    </div>
+
+                    <div id="calcExpression" class="text-zinc-500 text-right h-6 font-math text-sm sm:text-base tracking-wider overflow-hidden"></div>
+                    <div id="calcResult" class="text-zinc-900 text-right h-12 sm:h-16 font-math font-bold text-4xl sm:text-5xl tracking-tight overflow-hidden whitespace-nowrap">0</div>
+                </div>
+
+                <!-- Perbaikan Grid Kalkulator (Tombol "=" di Pojok Kanan Bawah) -->
+                <div class="grid grid-cols-4 gap-[1px] bg-zinc-200">
+                    <!-- Baris 1 -->
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-red-600 text-lg sm:text-xl" onclick="calcAction('C')">C</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-zinc-600 font-math text-xl sm:text-2xl" onclick="calcAction('(')">(</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-zinc-600 font-math text-xl sm:text-2xl" onclick="calcAction(')')">)</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-zinc-600 flex justify-center items-center" onclick="calcAction('DEL')"><i data-lucide="delete" class="w-5 h-5 sm:w-6 sm:h-6"></i></button>
+
+                    <!-- Baris 2 -->
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('7')">7</button>
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('8')">8</button>
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('9')">9</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction(':')">:</button>
+
+                    <!-- Baris 3 -->
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('4')">4</button>
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('5')">5</button>
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('6')">6</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction('x')">×</button>
+
+                    <!-- Baris 4 -->
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('1')">1</button>
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('2')">2</button>
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('3')">3</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction('-')">-</button>
+
+                    <!-- Baris 5 (Dikembalikan dengan tombol / dan +) -->
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('0')">0</button>
+                    <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('.')">.</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction('/')">/</button>
+                    <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction('+')">+</button>
+
+                    <!-- Baris 6 (M Span-3 dan "=" di pojok) -->
+                    <button class="calc-btn bg-indigo-50 col-span-3 py-4 sm:py-5 font-extrabold text-indigo-600 font-math text-xl sm:text-2xl tracking-[0.3em]" onclick="calcAction('M')">M</button>
+                    <button class="calc-btn bg-zinc-900 text-white py-4 sm:py-5 font-bold font-math text-2xl sm:text-3xl shadow-inner" onclick="calcAction('=')">=</button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== TAB 2: RASIO ==================== -->
+        <section id="tab-rasio" class="tab-content space-y-6">
+            <div class="border-b border-zinc-200 pb-4 mb-6">
+                <div class="flex justify-between items-start sm:items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-zinc-900">Kalkulator Rasio Pivot</h1>
+                        <p class="text-zinc-500 text-sm mt-1">Cari Baris Kunci untuk proses pivot secara otomatis.</p>
+                    </div>
+                    <button onclick="clearRatioTable()" class="mt-2 sm:mt-0 text-zinc-500 hover:text-red-600 text-sm font-medium transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-red-50">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i><span class="hidden sm:inline">Kosongkan Form</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
+                <div class="bg-white px-5 py-4 border-b border-zinc-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <h3 class="text-sm font-semibold text-zinc-800">Tabel Pencarian Rasio</h3>
+                    <div class="flex items-center gap-3">
+                        <span id="lblMatrixPecahan1" class="text-[10px] font-bold text-zinc-800 uppercase tracking-widest transition-colors">Pecahan</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="matrixFormatToggle1" class="sr-only peer">
+                            <div class="w-8 h-4 bg-zinc-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-900"></div>
+                        </label>
+                        <span id="lblMatrixDesimal1" class="text-[10px] font-medium text-zinc-400 uppercase tracking-widest transition-colors">Desimal</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto p-4 sm:p-6">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-3 text-xs uppercase tracking-wider font-bold text-zinc-500 border-b border-zinc-200 w-16 text-center">Baris</th>
+                                <th class="p-3 text-xs uppercase tracking-wider font-bold text-zinc-500 border-b border-zinc-200 text-center">Solusi</th>
+                                <th class="p-3 text-xs uppercase tracking-wider font-bold text-zinc-500 border-b border-zinc-200 text-center">Kolom Kunci</th>
+                                <th class="p-3 text-xs uppercase tracking-wider font-bold text-blue-600 border-b border-zinc-200 w-40 text-center bg-blue-50/50 rounded-t-md">Rasio</th>
+                                <th class="p-3 border-b border-zinc-200 w-12"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="ratioBody" class="divide-y divide-zinc-100">
+                            <!-- JS Inject -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-zinc-50 p-4 border-t border-zinc-200 flex flex-wrap gap-3 items-center justify-between">
+                    <button id="btnAddRatioRow" class="text-zinc-700 bg-white border border-zinc-300 hover:bg-zinc-100 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Baris
+                    </button>
+                    <button id="btnCalcRatio" class="bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
+                        <i data-lucide="play" class="w-4 h-4 text-zinc-300"></i> Hitung Rasio
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== TAB 3: ITERASI ==================== -->
+        <section id="tab-baris" class="tab-content space-y-6">
+            <div class="border-b border-zinc-200 pb-4 mb-6">
+                <div class="flex justify-between items-start sm:items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold text-zinc-900">Operasi Baris Elementer</h1>
+                        <p class="text-zinc-500 text-sm mt-1">Sistem kalkulasi iterasi baris dengan dukungan penuh variabel Big-M.</p>
+                    </div>
+                    <button onclick="clearIterasiForm()" class="mt-2 sm:mt-0 text-zinc-500 hover:text-red-600 text-sm font-medium transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-red-50">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i><span class="hidden sm:inline">Kosongkan Form</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-zinc-200 p-5 sm:p-6 shadow-sm space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-700 mb-2">Jumlah Kolom (Var Dasar + Solusi)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="numCols" value="6" min="2" max="20" class="cell-input w-24 font-math font-medium">
+                            <button id="btnUpdateCols" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300 px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm">Atur</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-zinc-800 mb-2">Koefisien (Titik Pivot / K)</label>
+                        <!-- ANTI TYPO REGEX -->
+                        <input type="text" id="koefisienInput" placeholder="Contoh: 3, -1/2, 5-2M" 
+                               oninput="this.value = this.value.toUpperCase().replace(/[^0-9M\.\+\-\*\/\:\(\)\s]/g, ''); this.classList.remove('error');" 
+                               inputmode="text" autocomplete="off" spellcheck="false" 
+                               class="cell-input font-math font-bold text-zinc-900 border-zinc-400 focus:border-zinc-900 bg-zinc-50 placeholder:text-zinc-400 placeholder:font-normal">
+                    </div>
+                </div>
+
+                <div class="border-t border-zinc-100 pt-6 space-y-5">
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-800 mb-2">1. Baris Lama <span class="text-zinc-400 font-normal">(Baris yang sedang dicari)</span></label>
+                        <div class="overflow-x-auto pb-2">
+                            <div id="rowLamaContainer" class="flex gap-2 min-w-max"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-zinc-800 mb-2">2. Baris Kunci <span class="text-zinc-400 font-normal">(Baris pivot yang sudah dibagi)</span></label>
+                        <div class="overflow-x-auto pb-2">
+                            <div id="rowKunciContainer" class="flex gap-2 min-w-max"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btnCalcRow" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white py-3.5 rounded-lg text-sm font-semibold transition-colors flex justify-center items-center gap-2 shadow-sm">
+                    <i data-lucide="zap" class="w-4 h-4 text-zinc-300"></i> Eksekusi Kalkulasi Baris
+                </button>
+            </div>
+
+            <!-- RESULT VISUALIZATION -->
+            <div id="resultContainer" class="hidden bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
+                <div class="bg-zinc-50 px-5 py-3 border-b border-zinc-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-sm font-semibold text-zinc-800 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                            Langkah Penyelesaian
+                        </h3>
+                        <button id="btnCopyResult" class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-zinc-900 flex items-center gap-1 transition-colors bg-white border border-zinc-200 px-2 py-1 rounded shadow-sm" title="Salin angka Baris Baru ke Clipboard">
+                            <i data-lucide="copy" class="w-3 h-3"></i> Salin
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <span id="lblMatrixPecahan2" class="text-[10px] font-bold text-zinc-800 uppercase tracking-widest transition-colors">Pecahan</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="matrixFormatToggle2" class="sr-only peer">
+                            <div class="w-8 h-4 bg-zinc-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-zinc-900"></div>
+                        </label>
+                        <span id="lblMatrixDesimal2" class="text-[10px] font-medium text-zinc-400 uppercase tracking-widest transition-colors">Desimal</span>
+                    </div>
+                </div>
+                
+                <div class="p-5 overflow-x-auto bg-white">
+                    <table class="min-w-full text-center font-math whitespace-nowrap text-base">
+                        <tbody id="resultMathTable">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== TAB 4: TENTANG (AUTHOR) ==================== -->
+        <section id="tab-about" class="tab-content">
+            <div class="max-w-3xl mx-auto bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
+                <div class="h-32 bg-zinc-800 relative w-full overflow-hidden">
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#ffffff 1px, transparent 1px); background-size: 16px 16px;"></div>
+                </div>
+                <div class="px-6 pb-8 relative text-left">
+                    <div class="w-24 h-24 bg-white rounded-full border-4 border-white shadow-sm flex items-center justify-center absolute -top-12 left-6 overflow-hidden">
+                        <div class="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-400">
+                            <i data-lucide="user" class="w-10 h-10"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-14 space-y-1">
+                        <h2 class="text-2xl font-bold text-zinc-900 tracking-tight">Rafi</h2>
+                        <p class="text-zinc-600 font-medium text-sm">Mahasiswa</p>
+                    </div>
+                    
+                    <div class="mt-5 text-zinc-600 text-sm leading-relaxed max-w-2xl">
+                        <p>
+                            Aplikasi <strong>SimplexCalc</strong> dirancang khusus untuk membantu dan mempercepat proses pengerjaan manual algoritma programa linear dengan Metode Simpleks dan Big-M. Dilengkapi dengan kalkulator matriks aljabar yang matematis, sehingga terhindar dari kesalahan hitung dan bisa fokus pada pemahaman logika iterasi.
+                        </p>
+                    </div>
+
+                   <div class="mt-6 flex flex-wrap gap-3 border-t border-zinc-100 pt-6 mb-2">
+                        <a href="https://www.linkedin.com/in/rafi-sanjaya-43803a30b/" target="_blank" class="flex-1 flex justify-center items-center gap-2 border border-zinc-200 bg-white px-4 py-2.5 text-[11px] font-bold text-zinc-700 uppercase tracking-wider rounded-lg hover:bg-[#0A66C2] hover:border-[#0A66C2] hover:text-white transition-all shadow-sm hover:shadow-md group">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors">
+                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                                <rect width="4" height="12" x="2" y="9"></rect>
+                                <circle cx="4" cy="4" r="2"></circle>
+                            </svg>
+                            LinkedIn
+                        </a>
+                        
+                        <a href="#" target="_blank" class="flex-1 flex justify-center items-center gap-2 border border-zinc-200 bg-white px-4 py-2.5 text-[11px] font-bold text-zinc-700 uppercase tracking-wider rounded-lg hover:bg-zinc-900 hover:border-zinc-900 hover:text-white transition-all shadow-sm hover:shadow-md group">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors">
+                                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.5-1.4 6.5-7a4.6 4.6 0 0 0-1.39-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.35-3.5 1.36a11.39 11.39 0 0 0-6 0c-2.4-1.71-3.5-1.36-3.5-1.36a4.2 4.2 0 0 0-.1 3.2 4.6 4.6 0 0 0-1.39 3.2c0 5.6 3.35 6.65 6.5 7A4.8 4.8 0 0 0 8 18v4"></path>
+                            </svg>
+                            GitHub
+                        </a>
+                        
+                        <a href="https://www.Instagram.com/mhmmdrfisn" target="_blank" class="flex-1 flex justify-center items-center gap-2 border border-zinc-200 bg-white px-4 py-2.5 text-[11px] font-bold text-zinc-700 uppercase tracking-wider rounded-lg hover:bg-[#E1306C] hover:border-[#E1306C] hover:text-white transition-all shadow-sm hover:shadow-md group">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors">
+                                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+                            </svg>
+                            Instagram
+                        </a>
+                    </div>
+
+                    <div class="mt-6 border-t border-dashed border-zinc-200 pt-6">
+                        <h3 class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                            <span>Recent Projects Archive</span>
+                            <i data-lucide="folder-git-2" class="w-4 h-4 text-zinc-400"></i>
+                        </h3>
+                        
+                        <div id="portfolio-list" class="flex flex-col gap-3">
+                            </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- CORE LOGIC JAVASCRIPT -->
+    <script>
+        lucide.createIcons();
+
+        // ==========================================
+        // PROTEKSI KODE DASAR (ANTI-INSPECT & COPY)
+        // ==========================================
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); }
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) { e.preventDefault(); }
+            if (e.ctrlKey && (e.key === 'U' || e.key === 'S' || e.keyCode === 85 || e.keyCode === 83)) { e.preventDefault(); }
+        });
+
+        // ==========================================
+        // 1. TOAST NOTIFICATION SYSTEM
+        // ==========================================
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'error' ? 'bg-zinc-900' : 'bg-emerald-600'; 
+            const textColor = 'text-white';
+            const iconName = type === 'error' ? 'alert-triangle' : 'check-circle-2';
+            
+            toast.className = `toast-enter pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-sm font-medium ${bgColor} ${textColor} border border-white/10`;
+            toast.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 flex-shrink-0"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-enter-active');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('toast-enter-active');
+                toast.classList.add('toast-exit-active');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ==========================================
+        // 2. MATH ENGINE (Shunting Yard & Fraksi Kuat)
+        // ==========================================
+        function gcd(a, b) {
+            a = Math.abs(a); b = Math.abs(b);
+            while (b) { let t = b; b = a % b; a = t; }
+            return a;
+        }
+
+        class Fraction {
+            constructor(n, d = 1) {
+                if (d === 0) throw new Error("Pembagian dengan nol dilarang.");
+                let sign = (n * d < 0) ? -1 : 1;
+                let num = Math.abs(n); let den = Math.abs(d);
+                let g = gcd(num, den);
+                this.n = sign * (num / g); this.d = den / g;
+            }
+            add(o) { return new Fraction(this.n * o.d + o.n * this.d, this.d * o.d); }
+            sub(o) { return new Fraction(this.n * o.d - o.n * this.d, this.d * o.d); }
+            mul(o) { return new Fraction(this.n * o.n, this.d * o.d); }
+            div(o) { return new Fraction(this.n * o.d, this.d * o.n); }
+            isZero() { return this.n === 0; }
+            isNegative() { return this.n < 0; }
+            toFloat() { return this.n / this.d; }
+            
+            toString() {
+                if (this.n === 0) return "0";
+                if (this.d === 1) return `${this.n}`;
+                return `${this.n}/${this.d}`;
+            }
+            toDecimalString(decimals = 3) {
+                if (this.n === 0) return "0";
+                let val = this.n / this.d;
+                if (val % 1 === 0) return val.toString();
+                return parseFloat(val.toFixed(decimals)).toString();
+            }
+            format(isDec) { return isDec ? this.toDecimalString() : this.toString(); }
+        }
+
+        class ExprM {
+            constructor(c = new Fraction(0), m = new Fraction(0)) {
+                this.c = c; this.m = m;
+            }
+            add(o) { return new ExprM(this.c.add(o.c), this.m.add(o.m)); }
+            sub(o) { return new ExprM(this.c.sub(o.c), this.m.sub(o.m)); }
+            mul(o) {
+                if (!this.m.isZero() && !o.m.isZero()) throw new Error("Perkalian variabel M x M dilarang.");
+                let new_c = this.c.mul(o.c);
+                let new_m = (this.c.mul(o.m)).add(this.m.mul(o.c));
+                return new ExprM(new_c, new_m);
+            }
+            div(o) {
+                if (!o.m.isZero()) {
+                    if (this.c.isZero() && o.c.isZero()) {
+                        let new_frac = this.m.div(o.m);
+                        return new ExprM(new_frac, new Fraction(0)); 
+                    }
+                    throw new Error("Pembagian kompleks variabel M dilarang.");
+                }
+                let new_c = this.c.div(o.c);
+                let new_m = this.m.div(o.c);
+                return new ExprM(new_c, new_m);
+            }
+            mulScalar(frac) { return new ExprM(this.c.mul(frac), this.m.mul(frac)); }
+            
+            eval(mValue = 10000) {
+                return this.c.toFloat() + this.m.toFloat() * mValue;
+            }
+
+            format(isDec) {
+                let str_c = this.c.format(isDec);
+                let str_m = this.m.format(isDec);
+
+                if (this.c.isZero() && this.m.isZero()) return "0";
+                if (this.c.isZero()) {
+                    if (str_m === "1") return "M";
+                    if (str_m === "-1") return "-M";
+                    return `${str_m}M`;
+                }
+                if (this.m.isZero()) return str_c;
+
+                let sign_m = this.m.isNegative() ? "-" : "+";
+                let abs_m_val = Math.abs(this.m.n / this.m.d);
+                let abs_m_str = "";
+                
+                if (isDec) {
+                    abs_m_str = (abs_m_val === 1) ? "" : parseFloat(abs_m_val.toFixed(3)).toString();
+                } else {
+                    abs_m_str = (abs_m_val === 1) ? "" : new Fraction(Math.abs(this.m.n), this.m.d).toString();
+                }
+                return `${str_c} ${sign_m} ${abs_m_str}M`;
+            }
+            toBracketFormat(isDec) {
+                if(!this.c.isZero() && !this.m.isZero()) return `(${this.format(isDec)})`;
+                return this.format(isDec);
+            }
+        }
+
+        // PARSER STRING LENGKAP (Prioritas Hirarki / dan : yang Presisi)
+        function parseFraction(str) {
+            str = str.trim();
+            if (str === "" || str === "0") return new Fraction(0);
+            let parts = str.split('/');
+            if (parts.length === 2) {
+                let n = parseFloat(parts[0]); let d = parseFloat(parts[1]);
+                if (isNaN(n) || isNaN(d)) throw new Error(`Format rasio invalid: ${str}`);
+                while(n % 1 !== 0 || d % 1 !== 0) { n *= 10; d *= 10; }
+                return new Fraction(n, d);
+            }
+            let f = parseFloat(str);
+            if (isNaN(f)) throw new Error(`Bukan angka: ${str}`);
+            let decStr = f.toString();
+            if (decStr.includes('.')) {
+                let decimals = decStr.split('.')[1].length;
+                let multiplier = Math.pow(10, decimals);
+                return new Fraction(Math.round(f * multiplier), multiplier);
+            }
+            return new Fraction(f);
+        }
+
+        function parseExpr(exprStr) {
+            if (!exprStr || exprStr.trim() === "") return new ExprM();
+            
+            let s = exprStr.replace(/\s+/g, '').toUpperCase();
+            
+            s = s.replace(/X/g, '*'); 
+            s = s.replace(/(^|\()(-)/g, '$10-');
+            s = s.replace(/(^|\()(\+)/g, '$10+');
+            s = s.replace(/(\d)M/g, '$1*M');
+            s = s.replace(/M(\d)/g, 'M*$1');
+            s = s.replace(/\)(M|\(|\d)/g, ')*$1');
+            s = s.replace(/(\d)\(/g, '$1*(');
+            s = s.replace(/M\(/g, 'M*(');
+
+            let tokens = s.match(/(\d+\.\d+|\d+|M|\+|\-|\*|\/|\:|\(|\))/g);
+            if (!tokens) throw new Error("Format ekspresi tidak valid.");
+            
+            let output = [];
+            let ops = [];
+            
+            // FIX: Hirarki / (pecahan) lebih tinggi dari : (pembagian)
+            let precedence = {'+':1, '-':1, '*':2, ':':2, '/':3};
+            
+            for(let t of tokens) {
+                if (t === 'M') {
+                    output.push(new ExprM(new Fraction(0), new Fraction(1)));
+                } else if (!isNaN(parseFloat(t))) {
+                    let f = parseFloat(t);
+                    let frac;
+                    if (t.includes('.')) {
+                        let decimals = t.split('.')[1].length;
+                        let multiplier = Math.pow(10, decimals);
+                        frac = new Fraction(Math.round(f * multiplier), multiplier);
+                    } else {
+                        frac = new Fraction(f);
+                    }
+                    output.push(new ExprM(frac));
+                } else if (t === '(') {
+                    ops.push(t);
+                } else if (t === ')') {
+                    while(ops.length && ops[ops.length-1] !== '(') output.push(ops.pop());
+                    if (ops.length === 0) throw new Error("Kurung tidak seimbang.");
+                    ops.pop(); 
+                } else {
+                    while(ops.length && ops[ops.length-1] !== '(' && precedence[ops[ops.length-1]] >= precedence[t]) {
+                        output.push(ops.pop());
+                    }
+                    ops.push(t);
+                }
+            }
+            while(ops.length) {
+                let op = ops.pop();
+                if (op === '(' || op === ')') throw new Error("Kurung tidak seimbang.");
+                output.push(op);
+            }
+            
+            let stack = [];
+            for(let t of output) {
+                if (t instanceof ExprM) {
+                    stack.push(t);
+                } else {
+                    let b = stack.pop(); let a = stack.pop();
+                    if (!a || !b) throw new Error("Struktur operator salah.");
+                    if (t === '+') stack.push(a.add(b));
+                    if (t === '-') stack.push(a.sub(b));
+                    if (t === '*') stack.push(a.mul(b));
+                    if (t === '/' || t === ':') stack.push(a.div(b));
+                }
+            }
+            if (stack.length !== 1) throw new Error("Sintaks matematika salah.");
+            return stack[0];
+        }
+
+
+        // ==========================================
+        // 3. UI NAVIGATION & SEPARATED SWITCH STATES
+        // ==========================================
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-btn').forEach(b => {
+                    b.classList.remove('text-zinc-900', 'bg-zinc-100', 'active');
+                    b.classList.add('text-zinc-500', 'hover:bg-zinc-50');
+                });
+                const currentBtn = e.currentTarget;
+                currentBtn.classList.remove('text-zinc-500', 'hover:bg-zinc-50');
+                currentBtn.classList.add('text-zinc-900', 'bg-zinc-100', 'active');
+
+                const targetId = currentBtn.getAttribute('data-target');
+                document.querySelectorAll('.tab-content').forEach(sec => sec.classList.remove('active'));
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        function updateToggleVisual(isDecimal, lblPecahan, lblDesimal) {
+            if (isDecimal) {
+                lblDesimal.classList.replace('text-zinc-400', 'text-zinc-800');
+                lblDesimal.classList.add('font-bold');
+                lblPecahan.classList.replace('text-zinc-800', 'text-zinc-400');
+                lblPecahan.classList.remove('font-bold');
+            } else {
+                lblPecahan.classList.replace('text-zinc-400', 'text-zinc-800');
+                lblPecahan.classList.add('font-bold');
+                lblDesimal.classList.replace('text-zinc-800', 'text-zinc-400');
+                lblDesimal.classList.remove('font-bold');
+            }
+        }
+
+        // STATE 1: Kalkulator Independen
+        let isCalcDecimalFormat = false;
+        const calcFormatToggle = document.getElementById('calcFormatToggle');
+        calcFormatToggle.addEventListener('change', (e) => {
+            isCalcDecimalFormat = e.target.checked;
+            updateToggleVisual(isCalcDecimalFormat, document.getElementById('lblCalcPecahan'), document.getElementById('lblCalcDesimal'));
+            updateCalcFormatVisual();
+        });
+
+        // STATE 2: Matriks & Rasio Independen
+        let isMatrixDecimalFormat = false;
+        let iterasiCalculation = { lama: [], pengurang: [], baru: [] };
+
+        const mToggle1 = document.getElementById('matrixFormatToggle1');
+        const mToggle2 = document.getElementById('matrixFormatToggle2');
+
+        function handleMatrixFormatChange(checked) {
+            isMatrixDecimalFormat = checked;
+            mToggle1.checked = checked; mToggle2.checked = checked;
+            
+            updateToggleVisual(checked, document.getElementById('lblMatrixPecahan1'), document.getElementById('lblMatrixDesimal1'));
+            updateToggleVisual(checked, document.getElementById('lblMatrixPecahan2'), document.getElementById('lblMatrixDesimal2'));
+            
+            if (iterasiCalculation.lama.length > 0) renderVisualResult();
+            updateRatioFormatVisual();
+        }
+
+        mToggle1.addEventListener('change', (e) => handleMatrixFormatChange(e.target.checked));
+        mToggle2.addEventListener('change', (e) => handleMatrixFormatChange(e.target.checked));
+
+
+        // ==========================================
+        // 4. TAB 1: KALKULATOR BIG-M
+        // ==========================================
+        let calcStr = "";
+        let calcLatestResult = new ExprM();
+        const screenExpr = document.getElementById('calcExpression');
+        const screenRes = document.getElementById('calcResult');
+
+        function calcAction(val) {
+            if (val === 'C') {
+                calcStr = "";
+                calcLatestResult = new ExprM();
+                screenRes.textContent = "0";
+            } else if (val === 'DEL') {
+                calcStr = calcStr.slice(0, -1);
+            } else if (val === '=') {
+                if (calcStr.trim() !== "") {
+                    try {
+                        calcLatestResult = parseExpr(calcStr);
+                        calcStr = calcLatestResult.format(isCalcDecimalFormat); 
+                    } catch (e) {
+                        showToast("Persamaan matematika tidak valid", "error");
+                    }
+                }
+            } else {
+                calcStr += val;
+            }
+            
+            screenExpr.textContent = calcStr;
+
+            if (calcStr !== "") {
+                try {
+                    calcLatestResult = parseExpr(calcStr);
+                    screenRes.textContent = calcLatestResult.format(isCalcDecimalFormat);
+                } catch (e) {
+                    screenRes.textContent = "...";
+                }
+            } else {
+                screenRes.textContent = "0";
+            }
+        }
+
+        function updateCalcFormatVisual() {
+            if(screenRes.textContent !== "0" && screenRes.textContent !== "...") {
+                screenRes.textContent = calcLatestResult.format(isCalcDecimalFormat);
+            }
+        }
+
+
+        // ==========================================
+        // 5. TAB 2: RASIO PIVOT
+        // ==========================================
+        const ratioBody = document.getElementById('ratioBody');
+        function updateRatioRowLabels() {
+            ratioBody.querySelectorAll('tr').forEach((row, index) => {
+                row.querySelector('.row-label').textContent = `R${index + 1}`;
+            });
+        }
+        function addRatioRow() {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="p-3 text-center text-zinc-600 font-bold text-sm row-label"></td>
+                <td class="p-2"><input type="text" oninput="this.value = this.value.toUpperCase().replace(/[^0-9M\\.\\+\\-\\*\\/\\:\\(\\)\\s]/g, ''); this.classList.remove('error');" inputmode="text" autocomplete="off" spellcheck="false" class="cell-input input-sol font-math" placeholder="0"></td>
+                <td class="p-2"><input type="text" oninput="this.value = this.value.toUpperCase().replace(/[^0-9M\\.\\+\\-\\*\\/\\:\\(\\)\\s]/g, ''); this.classList.remove('error');" inputmode="text" autocomplete="off" spellcheck="false" class="cell-input input-val font-math" placeholder="0"></td>
+                <td class="p-3 text-center font-math font-medium text-zinc-400 res-text bg-blue-50/20">-</td>
+                <td class="p-3 text-center">
+                    <button class="text-zinc-400 hover:text-red-600 transition-colors p-1" onclick="this.closest('tr').remove(); updateRatioRowLabels();">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </td>
+            `;
+            ratioBody.appendChild(tr); updateRatioRowLabels(); lucide.createIcons();
+        }
+        document.getElementById('btnAddRatioRow').addEventListener('click', addRatioRow);
+        
+        function clearRatioTable() {
+            const inputs = ratioBody.querySelectorAll('input');
+            inputs.forEach(inp => { inp.value = ''; inp.classList.remove('error'); });
+            ratioBody.querySelectorAll('tr').forEach(r => { 
+                r.classList.remove('bg-emerald-100', 'border-l-4', 'border-emerald-500', 'shadow-inner'); 
+                r.removeAttribute('data-fraction-obj'); 
+                let resText = r.querySelector('.res-text');
+                resText.textContent = "-";
+                resText.className = "p-3 text-center font-math font-medium text-zinc-400 res-text bg-blue-50/20";
+            });
+            showToast("Tabel Rasio dikosongkan.", "success");
+        }
+
+        document.getElementById('btnCalcRatio').addEventListener('click', () => {
+            document.querySelectorAll('#ratioBody .error').forEach(el => el.classList.remove('error'));
+
+            const rows = ratioBody.querySelectorAll('tr');
+            if(rows.length === 0) { showToast("Tabel rasio kosong.", "error"); return; }
+            
+            let minRatio = Infinity; let minRowIndex = -1;
+            
+            rows.forEach(r => { 
+                r.classList.remove('bg-emerald-100', 'border-l-4', 'border-emerald-500', 'shadow-inner'); 
+                r.removeAttribute('data-fraction-obj'); 
+                let resText = r.querySelector('.res-text');
+                resText.classList.remove('text-emerald-700', 'font-extrabold', 'text-xl', 'text-zinc-900', 'text-lg', 'text-red-600', 'font-bold', 'text-xs', 'uppercase', 'tracking-widest');
+                resText.classList.add('text-zinc-400', 'font-medium');
+            });
+            
+            let hasError = false;
+
+            rows.forEach((row, index) => {
+                const iSol = row.querySelector('.input-sol'); const iVal = row.querySelector('.input-val'); const tRes = row.querySelector('.res-text');
+                tRes.textContent = "-";
+                if(!iSol.value.trim() && !iVal.value.trim()) return;
+
+                try {
+                    let solExpr = parseExpr(iSol.value); let valExpr = parseExpr(iVal.value);
+                    
+                    let solNum = solExpr.eval();
+                    let valNum = valExpr.eval();
+
+                    if(valNum <= 0) {
+                        tRes.textContent = "Diabaikan"; 
+                        tRes.classList.add('text-xs', 'uppercase', 'tracking-widest', 'font-semibold');
+                    } else {
+                        let ratioFloat = solNum / valNum;
+                        let ratioText = "";
+                        if (valExpr.m.isZero()) {
+                            ratioText = solExpr.div(new ExprM(valExpr.c)).format(isMatrixDecimalFormat);
+                        } else if (solExpr.c.isZero() && valExpr.c.isZero()) {
+                            let mFrac = solExpr.m.div(valExpr.m);
+                            ratioText = mFrac.format(isMatrixDecimalFormat);
+                        } else {
+                            ratioText = isMatrixDecimalFormat ? ratioFloat.toFixed(3) : ratioFloat.toFixed(3);
+                        }
+
+                        tRes.textContent = ratioText;
+                        tRes.classList.add('text-zinc-900', 'text-lg', 'font-bold');
+                        if(ratioFloat >= 0 && ratioFloat < minRatio) { minRatio = ratioFloat; minRowIndex = index; }
+                    }
+                } catch(e) {
+                    iSol.classList.add('error'); iVal.classList.add('error');
+                    tRes.textContent = "Err"; 
+                    tRes.classList.add('text-red-600', 'font-bold');
+                    hasError = true;
+                }
+            });
+
+            if (hasError) { showToast("Terdapat kesalahan format pada tabel rasio.", "error"); return; }
+            if(minRowIndex !== -1) {
+                rows[minRowIndex].classList.add('bg-emerald-100', 'border-l-4', 'border-emerald-500', 'shadow-inner');
+                let winRes = rows[minRowIndex].querySelector('.res-text');
+                winRes.classList.remove('text-zinc-900', 'text-lg');
+                winRes.classList.add('text-emerald-700', 'font-extrabold', 'text-xl');
+            } else {
+                showToast("Tidak ada rasio positif yang fisibel.", "error");
+            }
+        });
+
+        function updateRatioFormatVisual() {
+            document.getElementById('btnCalcRatio').click();
+        }
+
+
+        // ==========================================
+        // 6. TAB 3: ITERASI BARIS
+        // ==========================================
+        let numCols = 6;
+        const cLama = document.getElementById('rowLamaContainer');
+        const cKunci = document.getElementById('rowKunciContainer');
+        
+        function renderIterInputs() {
+            cLama.innerHTML = ''; cKunci.innerHTML = '';
+            document.getElementById('resultContainer').classList.add('hidden');
+            for(let i=0; i<numCols; i++) {
+                let inp1 = document.createElement('input'); inp1.type = 'text'; inp1.inputMode = "text"; inp1.autocomplete = "off"; inp1.spellcheck = false; inp1.className = 'cell-input font-math w-20 sm:w-24'; inp1.placeholder = `C${i+1}`; 
+                inp1.oninput = function() { this.value = this.value.toUpperCase().replace(/[^0-9M\.\+\-\*\/\:\(\)\s]/g, ''); this.classList.remove('error'); };
+                cLama.appendChild(inp1);
+
+                let inp2 = document.createElement('input'); inp2.type = 'text'; inp2.inputMode = "text"; inp2.autocomplete = "off"; inp2.spellcheck = false; inp2.className = 'cell-input font-math w-20 sm:w-24 bg-zinc-50'; inp2.placeholder = `C${i+1}`; 
+                inp2.oninput = function() { this.value = this.value.toUpperCase().replace(/[^0-9M\.\+\-\*\/\:\(\)\s]/g, ''); this.classList.remove('error'); };
+                cKunci.appendChild(inp2);
+            }
+        }
+        document.getElementById('btnUpdateCols').addEventListener('click', () => {
+            let val = parseInt(document.getElementById('numCols').value);
+            if(val >= 2 && val <= 20) { numCols = val; renderIterInputs(); } else { showToast("Batas kolom 2 - 20", "error"); }
+        });
+
+        function clearIterasiForm() {
+            document.getElementById('koefisienInput').value = '';
+            document.getElementById('koefisienInput').classList.remove('error');
+            const inputs = document.querySelectorAll('#rowLamaContainer input, #rowKunciContainer input');
+            inputs.forEach(inp => { inp.value = ''; inp.classList.remove('error'); });
+            document.getElementById('resultContainer').classList.add('hidden');
+            showToast("Form Iterasi dikosongkan.", "success");
+        }
+
+        function renderVisualResult() {
+            const tbody = document.getElementById('resultMathTable'); let html = '';
+            html += `<tr><td class="text-right pr-4 pb-3 text-zinc-500 text-sm font-medium border-b border-zinc-100">Baris Lama</td>`;
+            iterasiCalculation.lama.forEach(expr => { html += `<td class="px-3 pb-3 text-zinc-800 tracking-wide border-b border-zinc-100">${expr.toBracketFormat(isMatrixDecimalFormat)}</td>`; });
+            html += `</tr><tr><td class="text-right pr-4 py-4 text-zinc-500 text-sm font-medium border-b border-zinc-200">- (K × Kunci)</td>`;
+            iterasiCalculation.pengurang.forEach(expr => { let str = expr.toBracketFormat(isMatrixDecimalFormat); if (str === "0") str = "0"; html += `<td class="px-3 py-4 text-zinc-500 tracking-wide border-b border-zinc-200">${str}</td>`; });
+            html += `</tr><tr><td class="text-right pr-4 pt-5 text-red-600 text-sm font-bold">Baris Baru = </td>`;
+            iterasiCalculation.baru.forEach(expr => { html += `<td class="px-3 pt-5 text-red-600 font-bold tracking-wide text-lg">${expr.toBracketFormat(isMatrixDecimalFormat)}</td>`; });
+            html += `</tr>`; tbody.innerHTML = html;
+        }
+
+        document.getElementById('btnCalcRow').addEventListener('click', () => {
+            document.querySelectorAll('#tab-baris .error').forEach(el => el.classList.remove('error'));
+            
+            const resBox = document.getElementById('resultContainer'); resBox.classList.add('hidden');
+            let iLama = cLama.querySelectorAll('input'); let iKunci = cKunci.querySelectorAll('input');
+            let koefInp = document.getElementById('koefisienInput');
+            
+            try {
+                if(!koefInp.value.trim()) { koefInp.classList.add('error'); throw new Error("Koefisien pivot kosong."); }
+                
+                let koefExpr = parseExpr(koefInp.value); let hasEmpty = false;
+                iterasiCalculation = { lama: [], pengurang: [], baru: [] };
+
+                for(let i=0; i<numCols; i++) {
+                    if(!iLama[i].value.trim()) { iLama[i].classList.add('error'); hasEmpty = true; } 
+                    if(!iKunci[i].value.trim()) { iKunci[i].classList.add('error'); hasEmpty = true; } 
+                    if (hasEmpty) continue;
+
+                    let exprLama = parseExpr(iLama[i].value); let exprKunci = parseExpr(iKunci[i].value); 
+                    if(!exprKunci.m.isZero()) throw new Error("Baris Kunci tidak boleh ada variabel M.");
+
+                    let koefKaliKunci = koefExpr.mul(exprKunci);
+                    let exprBaru = exprLama.sub(koefKaliKunci);
+                    iterasiCalculation.lama.push(exprLama); iterasiCalculation.pengurang.push(koefKaliKunci); iterasiCalculation.baru.push(exprBaru);
+                }
+
+                if (hasEmpty) throw new Error("Lengkapi semua sel matriks.");
+                renderVisualResult(); resBox.classList.remove('hidden'); resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (err) { showToast(err.message, "error"); }
+        });
+
+        // Copy to Clipboard Fallback
+        document.getElementById('btnCopyResult').addEventListener('click', () => {
+            if (iterasiCalculation.baru.length === 0) return;
+            const resultString = iterasiCalculation.baru.map(expr => expr.format(isMatrixDecimalFormat)).join('\t');
+            
+            const el = document.createElement('textarea');
+            el.value = resultString;
+            document.body.appendChild(el);
+            el.select();
+            try {
+                document.execCommand('copy');
+                showToast("Hasil disalin ke Clipboard!", "success");
+            } catch (err) {
+                showToast("Gagal menyalin hasil.", "error");
+            }
+            document.body.removeChild(el);
+        });
+
+        // ==========================================
+        // 7. PORTFOLIO DATA MANAGER
+        // ==========================================
+        const MY_PROJECTS = [
+            {
+                title: "Virtual Tour Campus Tel-U",
+                desc: "Sebuah platform web interaktif yang menyajikan virtual tour lingkungan Telkom University berbasis visual 360°. Web ini mengintegrasikan navigasi peta digital yang responsif dan titik informasi (hotspots) interaktif untuk memberikan pengalaman orientasi kampus yang modern, cepat, dan mudah diakses.",
+                tags: "Wordpress",
+                url: "https://360.telkomuniversity.ac.id/"
+            },
+            {
+                title: "Kasirin Bro",
+                desc: "Aplikasi Kasir Standar Toko berbasis Web.",
+                tags: "PHP / SQL",
+                url: "#"
+            },
+            {
+                title: "Student Portal",
+                desc: "Sebuah wadah transparan bagi seluruh siswa untuk menyampaikan aspirasi, saran, dan kritik kepada pihak sekolah, yang alur tindak lanjutnya dapat dipantau langsung oleh OSIS serta Kesiswaan, sekaligus dapat dilihat oleh siswa lainnya.",
+                tags: "PHP / SQL",
+                url: "#"
+            },
+            {
+                title: "Momentara",
+                desc: "Aplikasi web-based photobooth yang mengubah kamera HP atau laptop Anda menjadi bilik foto instan yang seru. Pengguna dapat langsung berpose, memilih berbagai desain frame yang unik dan estetik, serta mengunduh dengan kualitas tinggi untuk langsung dibagikan ke media sosial.",
+                tags: "Javascript / HTML / TailWind",
+                url: "https://momentara-bytexindonesia.netlify.app/"
+            },
+            {
+                title: "Poskes",
+                desc: "(Pos Kesehatan) dirancang khusus untuk mendukung pelayanan kesehatan di lapangan selama kegiatan MOSAIK ULBI, mulai dari pencatatan pasien baru beserta tanda vitalnya, pemantauan status penanganan secara langsung, hingga rekap riwayat kesehatan yang dapat dibagikan dalam sekali klik. Dibangun dengan antarmuka yang ringan dan alur yang sederhana.",
+                tags: "Javascript / HTML / TailWind",
+                url: "#"
+            },
+            {
+                title: "IftarSync",
+                desc: "Aplikasi modern yang menyelaraskan kebutuhan peserta dan kepanitiaan dalam momen Ramadan. Melalui halaman user yang interaktif, peserta dapat melihat detail acara, mengisi data diri, serta mengonfirmasi kehadiran beserta pesanan khusus mereka. Di sisi lain, panel admin bertindak sebagai pusat kendali cerdas yang melacak aliran dana masuk, memverifikasi bukti bayar, dan menyajikan rekap data akurat untuk menghindari kesalahan komunikasi selama persiapan acara.",
+                tags: "Javascript / GAS / TailWind",
+                url: "#"
+            },
+            {
+                title: "Queue Tracker",
+                desc: "Dirancang khusus untuk mempercepat proses perekaman data manual lapangan pada praktikum Teori Antrean (Model M/M/s). Dibangun dengan arsitektur yang ringan dan logika penguncian antrean cerdas (Smart Queue Lock) untuk memastikan integritas data.",
+                tags: "Javascript / HTML / TailWind",
+                url: "https://queue-tracker-bytexindonesia.netlify.app/"
+            },
+             {
+                title: "Laksamana Cloud Storage",
+                desc: "Aplikasi cloud storage gratis. Aplikasi ini dirancang untuk menyederhanakan manajemen file Anda dengan antarmuka yang bersih dan penyimpanan awan yang andal tanpa biaya tersembunyi. Unggah, simpan, dan kelola data Anda kapan saja dengan efisiensi tingkat tinggi.",
+                tags: "Javascript / GAS / TailWind",
+                url: "#"
+            },
+            {
+                title: "Healing Loko",
+                desc: "Aplikasi pemesanan tiket kereta api online ini dirancang untuk memenuhi tugas akhir dan memberikan pengalaman memesan perjalanan yang cepat, praktis, dan tanpa ribet. Mulai dari cek jadwal real-time, pilih kursi favorit secara interaktif, hingga pembayaran instan, semua bisa diselesaikan dalam hitungan detik agar perjalanan Anda menjadi lebih tenang dan terencana.",
+                tags: "Node JS / React",
+                url: "#"
+            }
+        ];
+
+        function renderPortfolio() {
+            const listContainer = document.getElementById('portfolio-list');
+            if (!listContainer) return;
+
+            let html = '';
+            MY_PROJECTS.forEach(project => {
+                // Logika: Jika URL bukan "#", tampilkan tombol kunjungi
+                const hasLink = project.url && project.url !== "#";
+                const linkHtml = hasLink 
+                    ? `<a href="${project.url}" target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5 mt-3 text-[11px] font-semibold transition-colors w-fit"><i data-lucide="external-link" class="w-3.5 h-3.5"></i> Kunjungi Proyek</a>` 
+                    : '';
+
+                // Pisahkan tag bahasa (contoh: "Javascript / HTML / TailWind")
+                const tagHtml = project.tags
+                    .split('/')
+                    .map(t => t.trim())
+                    .filter(Boolean)
+                    .map(t => `<span class="text-[9px] font-bold bg-zinc-200 text-zinc-700 px-2 py-1 rounded uppercase tracking-wider whitespace-nowrap">${t}</span>`)
+                    .join('');
+
+                html += `
+                    <div class="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 hover:bg-white hover:shadow-sm transition-all duration-200">
+                        <h4 class="text-sm font-bold text-zinc-900 leading-tight">${project.title}</h4>
+                        <p class="text-xs text-zinc-500 leading-relaxed mt-2">${project.desc}</p>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            ${tagHtml}
+                        </div>
+                        ${linkHtml}
+                    </div>
+                `;
+            });
+
+            listContainer.innerHTML = html;
+            // Penting: Render ulang icon lucide untuk elemen yang baru dibuat via JS
+            lucide.createIcons({ root: listContainer });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            for(let i=0; i<4; i++) addRatioRow(); renderIterInputs(); renderPortfolio();
+        });
+    </script>
+</body>
+</html>
