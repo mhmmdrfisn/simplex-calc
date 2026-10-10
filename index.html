@@ -749,13 +749,14 @@
                 resText.classList.add('text-zinc-400', 'font-medium');
             });
             
-            let hasError = false;
+            let hasError = false; let hasComputed = false;
 
             rows.forEach((row, index) => {
                 const iSol = row.querySelector('.input-sol'); const iVal = row.querySelector('.input-val'); const tRes = row.querySelector('.res-text');
                 tRes.textContent = "-";
                 if(!iSol.value.trim() && !iVal.value.trim()) return;
 
+                hasComputed = true;
                 try {
                     let solExpr = parseExpr(iSol.value); let valExpr = parseExpr(iVal.value);
                     
@@ -795,6 +796,10 @@
             });
 
             if (hasError) { showToast("Terdapat kesalahan format pada tabel rasio.", "error"); return; }
+            // Tidak ada sel yang terisi, jadi ini bukan "rasio tidak fisibel" -
+            // tabel memang masih kosong. Diamkan agar pergantian format
+            // Pecahan/Desimal tidak memunculkan toast.
+            if(!hasComputed) return;
             if(minRowIndex !== -1) {
                 rows[minRowIndex].classList.add('bg-emerald-100', 'border-l-4', 'border-emerald-500', 'shadow-inner');
                 let winRes = rows[minRowIndex].querySelector('.res-text');
