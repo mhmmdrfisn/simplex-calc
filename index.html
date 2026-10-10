@@ -96,7 +96,7 @@
     <!-- Main Content -->
     <main class="flex-grow max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- ==================== TAB 1: KALKULATOR ==================== -->
+        <!-- Tab: Kalkulator -->
         <section id="tab-kalkulator" class="tab-content active space-y-6">
             <div class="border-b border-zinc-200 pb-4 mb-6">
                 <h1 class="text-2xl font-bold text-zinc-900">Kalkulator Fraksional</h1>
@@ -118,7 +118,6 @@
                     <div id="calcResult" class="text-zinc-900 text-right h-12 sm:h-16 font-math font-bold text-4xl sm:text-5xl tracking-tight overflow-hidden whitespace-nowrap">0</div>
                 </div>
 
-                <!-- Perbaikan Grid Kalkulator (Tombol "=" di Pojok Kanan Bawah) -->
                 <div class="grid grid-cols-4 gap-[1px] bg-zinc-200">
                     <!-- Baris 1 -->
                     <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-red-600 text-lg sm:text-xl" onclick="calcAction('C')">C</button>
@@ -144,13 +143,13 @@
                     <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('3')">3</button>
                     <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction('-')">-</button>
 
-                    <!-- Baris 5 (Dikembalikan dengan tombol / dan +) -->
+                    <!-- Baris 5 -->
                     <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('0')">0</button>
                     <button class="calc-btn bg-white py-4 sm:py-5 font-bold text-zinc-800 font-math text-xl sm:text-2xl" onclick="calcAction('.')">.</button>
                     <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction('/')">/</button>
                     <button class="calc-btn bg-zinc-50 py-4 sm:py-5 font-bold text-blue-600 font-math text-xl sm:text-2xl" onclick="calcAction('+')">+</button>
 
-                    <!-- Baris 6 (M Span-3 dan "=" di pojok) -->
+                    <!-- Baris 6 -->
                     <button class="calc-btn bg-indigo-50 col-span-3 py-4 sm:py-5 font-extrabold text-indigo-600 font-math text-xl sm:text-2xl tracking-[0.3em]" onclick="calcAction('M')">M</button>
                     <button class="calc-btn bg-zinc-900 text-white py-4 sm:py-5 font-bold font-math text-2xl sm:text-3xl shadow-inner" onclick="calcAction('=')">=</button>
                 </div>
@@ -158,7 +157,7 @@
         </section>
 
 
-        <!-- ==================== TAB 2: RASIO ==================== -->
+        <!-- Tab: Rasio -->
         <section id="tab-rasio" class="tab-content space-y-6">
             <div class="border-b border-zinc-200 pb-4 mb-6">
                 <div class="flex justify-between items-start sm:items-center">
@@ -197,7 +196,6 @@
                             </tr>
                         </thead>
                         <tbody id="ratioBody" class="divide-y divide-zinc-100">
-                            <!-- JS Inject -->
                         </tbody>
                     </table>
                 </div>
@@ -213,7 +211,7 @@
         </section>
 
 
-        <!-- ==================== TAB 3: ITERASI ==================== -->
+        <!-- Tab: Iterasi -->
         <section id="tab-baris" class="tab-content space-y-6">
             <div class="border-b border-zinc-200 pb-4 mb-6">
                 <div class="flex justify-between items-start sm:items-center">
@@ -238,7 +236,6 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-zinc-800 mb-2">Koefisien (Titik Pivot / K)</label>
-                        <!-- ANTI TYPO REGEX -->
                         <input type="text" id="koefisienInput" placeholder="Contoh: 3, -1/2, 5-2M" 
                                oninput="this.value = this.value.toUpperCase().replace(/[^0-9M\.\+\-\*\/\:\(\)\s]/g, ''); this.classList.remove('error');" 
                                inputmode="text" autocomplete="off" spellcheck="false" 
@@ -266,7 +263,6 @@
                 </button>
             </div>
 
-            <!-- RESULT VISUALIZATION -->
             <div id="resultContainer" class="hidden bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
                 <div class="bg-zinc-50 px-5 py-3 border-b border-zinc-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                     <div class="flex items-center gap-4">
@@ -292,7 +288,6 @@
                 <div class="p-5 overflow-x-auto bg-white">
                     <table class="min-w-full text-center font-math whitespace-nowrap text-base">
                         <tbody id="resultMathTable">
-                            <!-- Injected by JS -->
                         </tbody>
                     </table>
                 </div>
@@ -300,7 +295,7 @@
         </section>
 
 
-        <!-- ==================== TAB 4: TENTANG (AUTHOR) ==================== -->
+        <!-- Tab: Author -->
         <section id="tab-about" class="tab-content">
             <div class="max-w-3xl mx-auto bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
                 <div class="h-32 bg-zinc-800 relative w-full overflow-hidden">
@@ -366,23 +361,11 @@
         </section>
     </main>
 
-    <!-- CORE LOGIC JAVASCRIPT -->
+    <!-- Logic -->
     <script>
         lucide.createIcons();
 
-        // ==========================================
-        // PROTEKSI KODE DASAR (ANTI-INSPECT & COPY)
-        // ==========================================
-        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' || e.keyCode === 123) { e.preventDefault(); }
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C' || e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) { e.preventDefault(); }
-            if (e.ctrlKey && (e.key === 'U' || e.key === 'S' || e.keyCode === 85 || e.keyCode === 83)) { e.preventDefault(); }
-        });
-
-        // ==========================================
-        // 1. TOAST NOTIFICATION SYSTEM
-        // ==========================================
+        // Toast notification
         function showToast(message, type = 'error') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -409,9 +392,7 @@
             }, 3000);
         }
 
-        // ==========================================
-        // 2. MATH ENGINE (Shunting Yard & Fraksi Kuat)
-        // ==========================================
+        // Math engine (shunting-yard, fraksi, Big-M)
         function gcd(a, b) {
             a = Math.abs(a); b = Math.abs(b);
             while (b) { let t = b; b = a % b; a = t; }
@@ -507,7 +488,7 @@
             }
         }
 
-        // PARSER STRING LENGKAP (Prioritas Hirarki / dan : yang Presisi)
+        // Parser (/ lebih tinggi prioritas dari :)
         function parseFraction(str) {
             str = str.trim();
             if (str === "" || str === "0") return new Fraction(0);
@@ -549,7 +530,6 @@
             let output = [];
             let ops = [];
             
-            // FIX: Hirarki / (pecahan) lebih tinggi dari : (pembagian)
             let precedence = {'+':1, '-':1, '*':2, ':':2, '/':3};
             
             for(let t of tokens) {
@@ -603,9 +583,7 @@
         }
 
 
-        // ==========================================
-        // 3. UI NAVIGATION & SEPARATED SWITCH STATES
-        // ==========================================
+        // Navigasi tab & toggle format
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.nav-btn').forEach(b => {
@@ -636,7 +614,7 @@
             }
         }
 
-        // STATE 1: Kalkulator Independen
+        // State kalkulator (terpisah)
         let isCalcDecimalFormat = false;
         const calcFormatToggle = document.getElementById('calcFormatToggle');
         calcFormatToggle.addEventListener('change', (e) => {
@@ -645,7 +623,7 @@
             updateCalcFormatVisual();
         });
 
-        // STATE 2: Matriks & Rasio Independen
+        // State matriks & rasio (terpisah)
         let isMatrixDecimalFormat = false;
         let iterasiCalculation = { lama: [], pengurang: [], baru: [] };
 
@@ -667,9 +645,7 @@
         mToggle2.addEventListener('change', (e) => handleMatrixFormatChange(e.target.checked));
 
 
-        // ==========================================
-        // 4. TAB 1: KALKULATOR BIG-M
-        // ==========================================
+        // Kalkulator Big-M
         let calcStr = "";
         let calcLatestResult = new ExprM();
         const screenExpr = document.getElementById('calcExpression');
@@ -716,9 +692,7 @@
         }
 
 
-        // ==========================================
-        // 5. TAB 2: RASIO PIVOT
-        // ==========================================
+        // Rasio pivot
         const ratioBody = document.getElementById('ratioBody');
         function updateRatioRowLabels() {
             ratioBody.querySelectorAll('tr').forEach((row, index) => {
@@ -827,9 +801,7 @@
         }
 
 
-        // ==========================================
-        // 6. TAB 3: ITERASI BARIS
-        // ==========================================
+        // Iterasi baris
         let numCols = 6;
         const cLama = document.getElementById('rowLamaContainer');
         const cKunci = document.getElementById('rowKunciContainer');
@@ -903,7 +875,6 @@
             } catch (err) { showToast(err.message, "error"); }
         });
 
-        // Copy to Clipboard Fallback
         document.getElementById('btnCopyResult').addEventListener('click', () => {
             if (iterasiCalculation.baru.length === 0) return;
             const resultString = iterasiCalculation.baru.map(expr => expr.format(isMatrixDecimalFormat)).join('\t');
@@ -921,9 +892,7 @@
             document.body.removeChild(el);
         });
 
-        // ==========================================
-        // 7. PORTFOLIO DATA MANAGER
-        // ==========================================
+        // Data portofolio
         const MY_PROJECTS = [
             {
                 title: "Virtual Tour Campus Tel-U",
@@ -987,13 +956,13 @@
 
             let html = '';
             MY_PROJECTS.forEach(project => {
-                // Logika: Jika URL bukan "#", tampilkan tombol kunjungi
+                // Tombol hanya ditampilkan jika URL valid
                 const hasLink = project.url && project.url !== "#";
                 const linkHtml = hasLink 
                     ? `<a href="${project.url}" target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 flex items-center gap-1.5 mt-3 text-[11px] font-semibold transition-colors w-fit"><i data-lucide="external-link" class="w-3.5 h-3.5"></i> Kunjungi Proyek</a>` 
                     : '';
 
-                // Pisahkan tag bahasa (contoh: "Javascript / HTML / TailWind")
+                // Tag bahasa dipisah per item
                 const tagHtml = project.tags
                     .split('/')
                     .map(t => t.trim())
@@ -1014,7 +983,6 @@
             });
 
             listContainer.innerHTML = html;
-            // Penting: Render ulang icon lucide untuk elemen yang baru dibuat via JS
             lucide.createIcons({ root: listContainer });
         }
 
