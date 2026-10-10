@@ -43,6 +43,14 @@ Logika optimasi (penentuan entering/leaving variable) tetap dilakukan manual, se
 
 **Rafi** - [LinkedIn](https://www.linkedin.com/in/rafi-sanjaya-43803a30b/) - [Instagram](https://www.instagram.com/mhmmdrfisn)
 
+## Lisensi
+
+[MIT](LICENSE) - Copyright (c) 2026 Rafi Sanjaya
+
+Bebas dipakai, diubah, dan dimodifikasi untuk keperluan apa pun, selama
+notis hak cipta asli dipertahankan. Cocok untuk keperluan belajar dan
+portofolio.
+
 ---
 
 Dibuat sebagai bagian dari portofolio project.
